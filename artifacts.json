@@ -1,10 +1,11 @@
 [
   {
-    "slug": "ejemplo",
-    "title": "Artefacto de ejemplo",
-    "description": "Marcador de posición: bórralo cuando añadas los tuyos.",
-    "source": "",
+    "slug": "facturas-hacienda",
+    "type": "doc",
+    "title": "Automatización de facturas → Hacienda",
+    "description": "Plan por fases para leer, validar y clasificar facturas y preparar el borrador del 303.",
+    "source": "https://claude.ai/code/artifact/9b8e3585-061d-4a0f-9dc4-93e2c6b5c6ca",
     "listed": true,
-    "updatedAt": "2026-10-18T15:45:00.000Z"
+    "updatedAt": "2026-10-18T18:00:00.000Z"
   }
 ]

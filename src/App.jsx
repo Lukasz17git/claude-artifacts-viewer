@@ -14,7 +14,8 @@ export default function App() {
 
   useEffect(() => {
     document.title = SITE_NAME;
-    fetch('/api/artifacts')
+    // Sin '/' inicial: '/artifacts.json' daría 404 en lukasz17git.github.io/claude-artifacts-viewer/
+    fetch('artifacts.json')
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then(setItems)
       .catch(() => setError(true));

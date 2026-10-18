@@ -54,6 +54,7 @@ if (cmd === 'add') {
   const entry = {
     ...prev,
     slug,
+    type: 'html',
     title: flags.title ?? prev.title ?? slug,
     description: flags.description ?? prev.description ?? '',
     source: flags.source ?? prev.source ?? '',

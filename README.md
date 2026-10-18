@@ -1,41 +1,44 @@
 # claude-artifacts-viewer
 
-Espejo público de tus artefactos de Claude en tu propio dominio. Cualquiera puede
-verlos sin cuenta, y siguen sincronizados con la versión que editas en Claude.
+Espejo público de tus artefactos de Claude, en GitHub Pages o en tu propio dominio.
+Cualquiera puede verlos sin cuenta, y siguen sincronizados con la versión que editas en Claude.
 
 ```
-tudominio.com/              → índice de artefactos (React + Tailwind)
-tudominio.com/a/<slug>/     → el artefacto, idéntico al de Claude
+lukasz17git.github.io/claude-artifacts-viewer/              → índice de artefactos (React + Tailwind)
+lukasz17git.github.io/claude-artifacts-viewer/a/<slug>/     → el artefacto
+lukasz17git.github.io/claude-artifacts-viewer/a/<slug>/#<id> → una pestaña concreta (documentos)
 ```
 
 ## Cómo funciona
 
 ```
-Claude (tus artefactos) ──lee HTML──▶ commit a este repo ──push──▶ Render redepliega ──▶ tu dominio
+Claude (tus artefactos) ──lee──▶ commit a este repo ──push──▶ GitHub Actions compila ──▶ GitHub Pages
 ```
 
-- `artifacts.json` es la lista: slug, título, descripción, URL de origen en Claude y si sale en el índice.
-- `sites/<slug>/index.html` es la copia del artefacto.
-- `server/index.js` (Express) sirve el índice, la API y cada artefacto.
-- La sincronización la hace Claude (tarea programada), porque Claude no tiene una
-  API pública para leer artefactos desde fuera. Detalles en [SYNC.md](SYNC.md).
+- `artifacts.json` es la lista: slug, tipo, título, descripción, URL de origen en Claude y si sale en el índice.
+- Hay dos tipos de artefacto:
+  - `html`: una página. Se guarda tal cual en `sites/<slug>/index.html` (más sus archivos, si tiene).
+  - `doc`: un documento de Claude Docs. Se guarda una pestaña por archivo en `sites/<slug>/tabs/<id>.html`
+    y su orden en `sites/<slug>/tabs.json`; al compilar se genera una página con pestañas.
+- `npm run build` crea un sitio estático en `dist/`: el índice, `artifacts.json` (sin la URL de origen ni
+  los ocultos) y cada artefacto en `a/<slug>/`.
+- La sincronización la hace Claude, porque no hay una API pública para leer artefactos desde fuera.
+  Detalles en [SYNC.md](SYNC.md).
 
 ## Uso local
 
 ```bash
 npm install
-npm run dev      # índice en http://localhost:5173 (con recarga)
-# o en modo producción:
-npm run build && npm start   # http://localhost:3000
+npm run dev                       # http://localhost:5173 (con recarga)
+npm run build && npm run preview  # el sitio tal como quedará publicado
 ```
 
 ## Añadir artefactos
 
-**Con Claude (recomendado):** en un chat con el repo conectado, pide
-"añade este artefacto con el slug `mi-slug`: <URL del artefacto>". La tarea
-programada lo mantendrá al día.
+**Con Claude (recomendado):** en un chat con este repo abierto, pide
+"añade este artefacto con el slug `mi-slug`: <URL del artefacto>".
 
-**A mano:** descarga el HTML del artefacto y:
+**A mano (solo tipo `html`):** descarga el HTML del artefacto y:
 
 ```bash
 npm run add -- mi-slug ./mi-artefacto.html --title "Mi artefacto" --description "Qué es"
@@ -44,22 +47,23 @@ npm run remove -- mi-slug
 npm run list
 ```
 
-Luego `git commit` y `git push`.
+Luego `git commit` y `git push`: cada push a `main` vuelve a publicar el sitio.
 
-## Despliegue (Render, gratis)
+## Despliegue (GitHub Pages, gratis)
 
-1. En render.com: **New → Blueprint** y elige este repo (usa `render.yaml`).
-2. En el servicio: **Settings → Custom Domains** y añade tu dominio; crea el
-   registro DNS que te indique.
-3. Cada push a `main` redepliega solo.
+1. El repo tiene que ser público (o tener GitHub Pro para Pages en repos privados).
+2. En GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. Haz push a `main` (o lanza el workflow a mano en **Actions → Deploy to GitHub Pages → Run workflow**).
+   El sitio queda en `https://lukasz17git.github.io/claude-artifacts-viewer/`.
 
-El plan gratuito de Render "duerme" el servicio tras un rato sin visitas, así que
-la primera carga puede tardar unos segundos. Funciona igual en Railway, Fly.io o
-cualquier VPS con Node 20+ (`npm install && npm run build && npm start`, puerto en `PORT`).
+**Dominio propio (opcional):** en **Settings → Pages → Custom domain** pon tu dominio y crea el registro DNS
+que indica GitHub (un `CNAME` a `lukasz17git.github.io` para un subdominio). Las rutas son relativas, así que
+no hay que cambiar nada en el código.
 
 ## Limitaciones
 
-- Los artefactos que usan funciones de Claude en tiempo de ejecución (datos
-  conectados, base de datos compartida, preguntar a Claude) no funcionan fuera de Claude.
-- La sincronización tiene el retraso de la tarea programada (p. ej. cada hora).
-- Todo lo que pongas en `sites/` es público. `listed: false` solo lo oculta del índice.
+- Los artefactos que usan funciones de Claude en tiempo de ejecución (datos conectados, base de datos
+  compartida, preguntar a Claude) no funcionan fuera de Claude.
+- En los documentos, los diagramas no se exportan: se ve un hueco con su título.
+- La copia solo se actualiza cuando Claude sincroniza (a mano o con una tarea programada).
+- Todo lo que pongas en `sites/` es público, también en el historial de git. `listed: false` solo lo oculta del índice.
